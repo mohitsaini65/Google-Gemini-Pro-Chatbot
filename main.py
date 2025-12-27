@@ -1,16 +1,16 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
 
 st.title("My First Chatbot 🤖")
 
-# Get API key from Streamlit Secrets
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+# Load API key from Streamlit Secrets
+client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
 
-# Store chat messages
+# Chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Show previous messages
+# Show old messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -24,15 +24,21 @@ if user_input:
     with st.chat_message("user"):
         st.write(user_input)
 
-    # AI response
-    model = genai.GenerativeModel("models/gemini-1.5-flash")
-    response = model.generate_content(user_input)
+    # Gemini response
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=user_input
+    )
+
+    reply = response.text
 
     with st.chat_message("assistant"):
-        st.write(response.text)
+        st.write(reply)
 
     st.session_state.messages.append(
-        {"role": "assistant", "content": response.text}
+        {"role": "assistant", "content": reply}
     )
+
+
 
 
