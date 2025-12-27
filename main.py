@@ -25,7 +25,7 @@ if user_input:
         st.write(user_input)
 
     # AI response
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("models/gemini-1.5-flash")
     response = model.generate_content(user_input)
 
     with st.chat_message("assistant"):
@@ -34,4 +34,5 @@ if user_input:
     st.session_state.messages.append(
         {"role": "assistant", "content": response.text}
     )
+
 
