@@ -1,51 +1,49 @@
 import streamlit as st
-import os
-from groq import Groq
+from huggingface_hub import InferenceClient
+
+# Page title
+st.set_page_config(page_title="My First Chatbot 🤖")
 
 st.title("My First Chatbot 🤖")
 
-# Set API key for Groq
-os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
-client = Groq()
+# Load Hugging Face token from Streamlit secrets
+HF_TOKEN = st.secrets["HF_TOKEN"]
 
+# Create Hugging Face client
+client = InferenceClient(
+    model="mistralai/Mistral-7B-Instruct-v0.2",
+    token=HF_TOKEN
+)
+
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Show chat history
+# Display previous messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+        st.markdown(msg["content"])
 
+# User input
 user_input = st.chat_input("Type your message...")
 
 if user_input:
-    st.session_state.messages.append(
-        {"role": "user", "content": user_input}
-    )
+    # Show user message
+    st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user"):
-        st.write(user_input)
+        st.markdown(user_input)
 
-    completion = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": user_input}
-        ],
-        max_tokens=512,
+    # Get model response
+    response = client.text_generation(
+        user_input,
+        max_new_tokens=200,
         temperature=0.7
     )
 
-    reply = completion.choices[0].message.content
-
+    # Show assistant message
+    st.session_state.messages.append({"role": "assistant", "content": response})
     with st.chat_message("assistant"):
-        st.write(reply)
-
-    st.session_state.messages.append(
-        {"role": "assistant", "content": reply}
-    )
-
-
-
+        st.markdown(response)
 
 
 
