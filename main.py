@@ -4,17 +4,20 @@ from huggingface_hub import InferenceClient
 st.set_page_config(page_title="My First Chatbot 🤖")
 st.title("My First Chatbot 🤖")
 
-# Get token from Streamlit Secrets
+# Hugging Face token from Streamlit secrets
 HF_TOKEN = st.secrets["HF_TOKEN"]
 
-# Create Hugging Face client
-client = InferenceClient(token=HF_TOKEN)
+# Create inference client
+client = InferenceClient(
+    model="mistralai/Mistral-7B-Instruct-v0.2",
+    token=HF_TOKEN
+)
 
-# Initialize chat history
+# Chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
+# Display previous messages
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -30,21 +33,16 @@ if user_input:
     with st.chat_message("user"):
         st.write(user_input)
 
-    # Generate AI response (WORKING METHOD)
-    response = client.chat_completion(
-        model="HuggingFaceH4/zephyr-7b-beta",
-        messages=[
-            {"role": "user", "content": user_input}
-        ],
-        max_tokens=200
+    # Generate AI response
+    response = client.text_generation(
+        user_input,
+        max_new_tokens=200,
+        temperature=0.7
     )
-
-    reply = response.choices[0].message["content"]
 
     with st.chat_message("assistant"):
-        st.write(reply)
+        st.write(response)
 
     st.session_state.messages.append(
-        {"role": "assistant", "content": reply}
+        {"role": "assistant", "content": response}
     )
-
