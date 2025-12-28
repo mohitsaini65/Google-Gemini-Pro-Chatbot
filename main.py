@@ -28,11 +28,15 @@ if user_input:
 
     # Get response from Groq
     completion = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[
-            {"role": "user", "content": user_input}
-        ]
-    )
+    model="llama3-8b-8192",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": user_input}
+    ],
+    max_tokens=512,
+    temperature=0.7
+)
+
 
     reply = completion.choices[0].message.content
 
@@ -42,6 +46,7 @@ if user_input:
     st.session_state.messages.append(
         {"role": "assistant", "content": reply}
     )
+
 
 
 
