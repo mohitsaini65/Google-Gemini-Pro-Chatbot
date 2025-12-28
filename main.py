@@ -1,30 +1,40 @@
 import streamlit as st
-from google import genai
+from groq import Groq
 
 st.title("My First Chatbot 🤖")
 
-client = genai.Client(api_key=st.secrets["GOOGLE_API_KEY"])
+# Create Groq client using secret key
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
+# Store chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Show chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
+# User input
 user_input = st.chat_input("Type your message...")
 
 if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    # Show user message
+    st.session_state.messages.append(
+        {"role": "user", "content": user_input}
+    )
     with st.chat_message("user"):
         st.write(user_input)
 
-    response = client.models.generate_content(
-        model="models/gemini-1.5-flash",
-        contents=[user_input]
+    # Get response from Groq
+    completion = client.chat.completions.create(
+        model="llama3-8b-8192",
+        messages=[
+            {"role": "user", "content": user_input}
+        ]
     )
 
-    reply = response.text
+    reply = completion.choices[0].message.content
 
     with st.chat_message("assistant"):
         st.write(reply)
@@ -32,6 +42,7 @@ if user_input:
     st.session_state.messages.append(
         {"role": "assistant", "content": reply}
     )
+
 
 
 
