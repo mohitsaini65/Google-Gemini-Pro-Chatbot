@@ -1,16 +1,15 @@
 import streamlit as st
 from huggingface_hub import InferenceClient
 
-# Page title
 st.set_page_config(page_title="My First Chatbot 🤖")
 st.title("My First Chatbot 🤖")
 
-# Get token from Streamlit Secrets
+# Get Hugging Face token from Streamlit Secrets
 HF_TOKEN = st.secrets["HF_TOKEN"]
 
-# Hugging Face client (THIS MODEL WORKS)
+# Use a text-generation compatible model
 client = InferenceClient(
-    model="HuggingFaceH4/zephyr-7b-beta",
+    model="mistralai/Mistral-7B-Instruct-v0.2",
     token=HF_TOKEN
 )
 
@@ -35,17 +34,10 @@ if user_input:
     # AI response
     with st.chat_message("assistant"):
         response = client.text_generation(
-            prompt=user_input,
+            user_input,
             max_new_tokens=200,
             temperature=0.7
         )
         st.write(response)
 
     st.session_state.messages.append({"role": "assistant", "content": response})
-
-
-
-
-
-
-
