@@ -8,6 +8,7 @@ client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# Show chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
@@ -15,20 +16,25 @@ for msg in st.session_state.messages:
 user_input = st.chat_input("Type your message...")
 
 if user_input:
+    # Show user message
     st.session_state.messages.append(
         {"role": "user", "content": user_input}
     )
     with st.chat_message("user"):
         st.write(user_input)
 
-    # ✅ NEW GROQ API (CORRECT)
-    response = client.responses.create(
+    # ✅ CORRECT GROQ CALL
+    completion = client.chat.completions.create(
         model="llama3-8b-8192",
-        input=user_input,
-        max_output_tokens=512
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": user_input}
+        ],
+        temperature=0.7,
+        max_tokens=512
     )
 
-    reply = response.output_text
+    reply = completion.choices[0].message.content
 
     with st.chat_message("assistant"):
         st.write(reply)
