@@ -1,43 +1,91 @@
 import streamlit as st
-from huggingface_hub import InferenceClient
+from google import genai
 
-st.set_page_config(page_title="My First Chatbot 🤖")
-st.title("My First Chatbot 🤖")
+# ---------- PAGE CONFIG ----------
+st.set_page_config(page_title="My First Chatbot", page_icon="🤖")
 
-HF_TOKEN = st.secrets["HF_TOKEN"]
+# ---------- CUSTOM CSS ----------
+st.markdown("""
+<style>
+.stApp {
+    background-color: #f7f8fa;
+}
 
-client = InferenceClient(
-    model="mistralai/Mistral-7B-Instruct-v0.2",
-    token=HF_TOKEN
-)
+h1 {
+    text-align: center;
+    font-weight: 700;
+}
 
+.chat-user {
+    background-color: #dcf8c6;
+    padding: 12px 15px;
+    border-radius: 15px;
+    margin: 8px 0;
+    text-align: right;
+}
+
+.chat-bot {
+    background-color: #ffffff;
+    padding: 12px 15px;
+    border-radius: 15px;
+    margin: 8px 0;
+    text-align: left;
+    border: 1px solid #e6e6e6;
+}
+
+textarea {
+    border-radius: 12px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ---------- TITLE ----------
+st.title("🤖 My First Chatbot")
+
+# ---------- GEMINI CLIENT ----------
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
+# ---------- STEP 3: CHAT MEMORY ----------
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+# ---------- DISPLAY CHAT HISTORY ----------
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.write(msg["content"])
+    if msg["role"] == "user":
+        st.markdown(
+            f"<div class='chat-user'>{msg['content']}</div>",
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            f"<div class='chat-bot'>{msg['content']}</div>",
+            unsafe_allow_html=True
+        )
 
+# ---------- INPUT ----------
 user_input = st.chat_input("Type your message...")
 
 if user_input:
-    st.session_state.messages.append(
-        {"role": "user", "content": user_input}
-    )
-    with st.chat_message("user"):
-        st.write(user_input)
+    # Save user message
+    st.session_state.messages.append({
+        "role": "user",
+        "content": user_input
+    })
 
-    response = client.text_generation(
-        user_input,
-        max_new_tokens=150,
-        temperature=0.7
+    # Gemini response
+    response = client.models.generate_content(
+        model="models/gemini-flash-lite-latest",
+        contents=user_input
     )
 
-    with st.chat_message("assistant"):
-        st.write(response)
+    bot_reply = response.text
 
-    st.session_state.messages.append(
-        {"role": "assistant", "content": response}
-    )
+    # Save bot message
+    st.session_state.messages.append({
+        "role": "assistant",
+        "content": bot_reply
+    })
+
+    st.rerun()
 
 
